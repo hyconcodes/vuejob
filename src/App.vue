@@ -1,46 +1,45 @@
 <script setup>
-import { ref } from 'vue'
-const count = ref(0);
-const permission = ref(['create', 'update', 'view', 'delete', 'put', 'destroy']);
-const isPending = ref(true);
-let status = ref('Pending.....');
-let color = ref('skyblue');
+import { onMounted, ref } from 'vue'
 
-function resetCount() {
-  count.value = 0;
-}
-const magicToogle = () => {
-  if (isPending.value === true) {
-    isPending.value = false;
-    status.value = 'Failed.....';
-    permission.value[2] = 'posted';
-    color.value = 'yellow';
-    console.log(status.value);
+const tasks = ref(['Task One', 'Task Two', 'Task Three'])
+const newTask = ref('')
+const handleTaskSub = () => {
+  if (newTask.value !== '') {
+    tasks.value.push(newTask.value)
+    newTask.value = ''
   } else {
-    isPending.value = true;
-    status.value = 'Pending.....';
-    permission.value.push('viewing')
-    color.value = 'green';
-    console.log(status.value);
+    alert("Oop's something is wrong, trying adding a task or increase your task length.")
+    newTask.value = ''
   }
 }
+const deleteTasks = (id) => {
+  tasks.value.splice(id, 1)
+}
+
+onMounted( async () => {
+  try {
+    const response = await fetch('https://jsonplaceholder.typicode.com/todos')
+    const data = await response.json()
+    tasks.value = data.map((item) => item.title)
+    console.warn(data);
+    // console.warn(t);
+  } catch (error) {
+    console.log(error);
+  }
+})
 </script>
 
 <template>
+  <h2>VueTasksify</h2>
+  <form @submit.prevent="handleTaskSub">
+    <label for="Tasks">Task</label>
+    <input type="text" v-model="newTask" placeholder="Add a tasks">
+    <button type="submit" style="background: springgreen;">Add new tasks</button>
 
-  <body :style="{backgroundColor: color }">
-
-    <button @click="count++">Count + {{ count }}</button>
-    <h1 style="text-align: center;">Current state: {{ count }}</h1>
-    <button @click="count--">Count - {{ count }}</button>
-    <button @click="resetCount">Reset {{ count }}</button>
-
-    <div class="content" v-for="(item, index) in permission" :key="index">{{ index + 1 }} {{ item }}</div>
-    <br>
-    <br>
-    <p>{{ status }}</p>
-    <button @click="magicToogle">Toggle</button>
-  </body>
+  </form>
+  <ul>
+    <li v-for="(item, index) in tasks" :key="index" >{{ item }} <button @click="deleteTasks(index)">delete</button></li>
+  </ul>
 </template>
 
 <style scoped>
